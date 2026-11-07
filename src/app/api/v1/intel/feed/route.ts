@@ -23,3 +23,4 @@ export async function GET(req: NextRequest) {
     total: reports.length,
   });
 }
+

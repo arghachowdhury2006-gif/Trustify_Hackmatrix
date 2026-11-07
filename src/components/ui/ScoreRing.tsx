@@ -79,3 +79,4 @@ export const ScoreRing: React.FC<ScoreRingProps> = ({
     </div>
   );
 };
+

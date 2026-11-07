@@ -4,6 +4,13 @@ import { promisify } from 'util';
 const resolve4Async = promisify(dns.resolve4);
 const resolve6Async = promisify(dns.resolve6);
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
+  ]);
+}
+
 // Private/reserved IP blocks
 function isPrivateIp(ip: string): boolean {
   // IPv4 check
@@ -29,7 +36,7 @@ function isPrivateIp(ip: string): boolean {
   }
 
   // IPv6 check
-  const lower = ip.toLowerCase();
+  const lower = ip.toLowerCase().replace(/^\[|\]$/g, '');
   if (lower === '::1' || lower === '0:0:0:0:0:0:0:1') return true;
   if (lower.startsWith('fe80:') || lower.startsWith('fc00:') || lower.startsWith('fd00:')) return true;
   if (lower.startsWith('::ffff:')) {
@@ -103,14 +110,14 @@ export async function validateUrlForSSRF(rawUrl: string): Promise<SSRFValidation
 
   // Resolve hostname via DNS
   try {
-    const addresses = await resolve4Async(hostname).catch(() => [] as string[]);
+    const addresses = await withTimeout(resolve4Async(hostname).catch(() => [] as string[]), 800, [] as string[]);
     for (const ip of addresses) {
       if (isPrivateIp(ip)) {
         return { safe: false, reason: `Hostname resolves to private/internal IP address (${ip})` };
       }
     }
 
-    const addresses6 = await resolve6Async(hostname).catch(() => [] as string[]);
+    const addresses6 = await withTimeout(resolve6Async(hostname).catch(() => [] as string[]), 800, [] as string[]);
     for (const ip6 of addresses6) {
       if (isPrivateIp(ip6)) {
         return { safe: false, reason: `Hostname resolves to internal IPv6 address (${ip6})` };
@@ -135,3 +142,4 @@ export async function validateUrlForSSRF(rawUrl: string): Promise<SSRFValidation
     };
   }
 }
+

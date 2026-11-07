@@ -29,3 +29,4 @@ export async function DELETE(
   db.scans.delete(params.id);
   return NextResponse.json({ success: true, message: 'Scan deleted successfully.' });
 }
+

@@ -423,3 +423,4 @@ export function getDashboardSummary(): DashboardSummary {
     recentAlerts: alerts,
   };
 }
+

@@ -5,3 +5,4 @@ export async function GET() {
   const summary = getDashboardSummary();
   return NextResponse.json(summary);
 }
+

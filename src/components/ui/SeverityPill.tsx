@@ -23,3 +23,4 @@ export const SeverityPill: React.FC<SeverityPillProps> = ({ severity }) => {
     </span>
   );
 };
+

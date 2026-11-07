@@ -69,3 +69,4 @@ export const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
     </div>
   );
 };
+

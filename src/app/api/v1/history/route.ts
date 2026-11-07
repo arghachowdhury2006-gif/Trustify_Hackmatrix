@@ -39,3 +39,4 @@ export async function DELETE() {
   db.scans.clear();
   return NextResponse.json({ success: true, message: 'Scan history cleared.' });
 }
+

@@ -98,3 +98,4 @@ export const CertificateChainGraphic: React.FC<CertificateChainGraphicProps> = (
     </div>
   );
 };
+

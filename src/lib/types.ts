@@ -201,3 +201,4 @@ export interface DashboardSummary {
   threatTypes: { type: string; label: string; pct: number; count: number }[];
   recentAlerts: Alert[];
 }
+

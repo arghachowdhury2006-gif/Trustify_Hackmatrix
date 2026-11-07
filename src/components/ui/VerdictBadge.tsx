@@ -67,3 +67,4 @@ export const VerdictBadge: React.FC<VerdictBadgeProps> = ({ verdict, size = 'md'
     </span>
   );
 };
+
