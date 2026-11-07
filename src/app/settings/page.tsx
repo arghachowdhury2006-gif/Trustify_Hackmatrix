@@ -50,6 +50,11 @@ export default function SettingsPage() {
   const [inAppAlerts, setInAppAlerts] = useState(true);
   const [criticalOnly, setCriticalOnly] = useState(false);
 
+  // Profile state in settings
+  const [profileName, setProfileName] = useState('Security Analyst');
+  const [profileEmail, setProfileEmail] = useState('analyst@trustify.local');
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
+
   const fetchKeys = async () => {
     try {
       const res = await fetch('/api/v1/users/me/api-keys');
@@ -64,7 +69,48 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchKeys();
+
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('trustify_user_profile');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.name) setProfileName(parsed.name);
+          if (parsed.email) setProfileEmail(parsed.email);
+        }
+      } catch {}
+    }
+
+    fetch('/api/v1/users/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          if (data.name) setProfileName(data.name);
+          if (data.email) setProfileEmail(data.email);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const handleSaveProfileSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetch('/api/v1/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: profileName, email: profileEmail }),
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'trustify_user_profile',
+          JSON.stringify({ name: profileName, email: profileEmail })
+        );
+        window.dispatchEvent(new Event('trustify_profile_updated'));
+      }
+      setProfileSaveSuccess(true);
+      setTimeout(() => setProfileSaveSuccess(false), 2000);
+    } catch {}
+  };
 
   const handleGenerateKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -342,21 +388,27 @@ export default function SettingsPage() {
       {activeTab === 'profile' && (
         <div className="cream-card p-6 md:p-8 space-y-4 max-w-xl">
           <h3 className="text-base font-bold text-ink">Security Analyst Profile</h3>
-          <div className="space-y-3 text-xs">
+          <p className="text-xs text-ink-60">Manage your analyst name, credentials, and reputation profile.</p>
+
+          <form onSubmit={handleSaveProfileSettings} className="space-y-4 text-xs pt-1">
             <div>
               <label className="font-bold text-ink block mb-1">Display Name</label>
               <input
                 type="text"
-                defaultValue="Security Analyst"
-                className="w-full bg-[#FBEBDA] text-ink p-3 rounded-xl border border-[#E8C9AA]"
+                required
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                className="w-full bg-[#FBEBDA] text-ink p-3 rounded-xl border border-[#E8C9AA] focus:outline-none focus:border-[#468D8B]"
               />
             </div>
             <div>
               <label className="font-bold text-ink block mb-1">Email Address</label>
               <input
                 type="email"
-                defaultValue="analyst@trustify.local"
-                className="w-full bg-[#FBEBDA] text-ink p-3 rounded-xl border border-[#E8C9AA]"
+                required
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                className="w-full bg-[#FBEBDA] text-ink p-3 rounded-xl border border-[#E8C9AA] focus:outline-none focus:border-[#468D8B]"
               />
             </div>
             <div>
@@ -374,7 +426,21 @@ export default function SettingsPage() {
                 92 / 100 · High Trust Contributor
               </div>
             </div>
-          </div>
+
+            {profileSaveSuccess ? (
+              <div className="p-3 rounded-xl bg-[#74B3A8]/20 text-[#468D8B] font-bold text-center">
+                ✓ Profile changes saved successfully!
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="px-6 py-2.5 rounded-btn bg-[#468D8B] hover:bg-[#3a7a78] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                <span>Save Profile Changes</span>
+              </button>
+            )}
+          </form>
         </div>
       )}
 

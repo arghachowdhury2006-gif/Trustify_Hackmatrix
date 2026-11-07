@@ -67,3 +67,31 @@ body {
   border-radius: 14px;
 }
 
+/* Print Dossier Styles */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #213843 !important;
+  }
+
+  aside, header, footer, .no-print {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .cream-card {
+    background-color: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

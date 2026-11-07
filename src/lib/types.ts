@@ -185,6 +185,13 @@ export interface WatchlistDomain {
   certIssuer?: string;
 }
 
+export interface UserProfile {
+  name: string;
+  email: string;
+  role: string;
+  reputation: number;
+}
+
 export interface DashboardSummary {
   kpis: {
     totalScans: { value: number; deltaPct: number };

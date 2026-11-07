@@ -11,6 +11,12 @@ declare global {
     apiKeys: Map<string, ApiKeyRecord>;
     watchlist: Map<string, WatchlistDomain>;
     userVotes: Map<string, number>; // `${userId}:${reportId}` -> 1 | -1
+    userProfile: {
+      name: string;
+      email: string;
+      role: string;
+      reputation: number;
+    };
   } | undefined;
 }
 
@@ -375,6 +381,12 @@ function initDb() {
     apiKeys,
     watchlist,
     userVotes,
+    userProfile: {
+      name: 'Security Analyst',
+      email: 'analyst@trustify.local',
+      role: 'Threat Analyst',
+      reputation: 92,
+    },
   };
 
   return global.__TRUSTIFY_DB;

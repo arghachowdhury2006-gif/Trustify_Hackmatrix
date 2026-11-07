@@ -5,8 +5,15 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const category = searchParams.get('category');
   const sort = searchParams.get('sort') || 'new';
+  const userId = req.headers.get('x-user-id') || 'analyst-user-session';
 
-  let reports = Array.from(db.threatReports.values());
+  let reports = Array.from(db.threatReports.values()).map(r => {
+    const userVote = db.userVotes.get(`${userId}:${r.id}`) || 0;
+    return {
+      ...r,
+      userVoted: userVote === 1 ? 1 : userVote === -1 ? -1 : undefined,
+    };
+  });
 
   if (category && category !== 'all') {
     reports = reports.filter(r => r.category === category);
@@ -23,4 +30,3 @@ export async function GET(req: NextRequest) {
     total: reports.length,
   });
 }
-

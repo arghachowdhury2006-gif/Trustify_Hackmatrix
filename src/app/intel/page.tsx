@@ -17,12 +17,23 @@ import {
 } from 'lucide-react';
 import { ThreatCategory, ThreatReport } from '@/lib/types';
 
+function getPersistentUserId(): string {
+  if (typeof window === 'undefined') return 'analyst-user-session';
+  let uid = localStorage.getItem('trustify_user_id');
+  if (!uid) {
+    uid = 'user_' + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('trustify_user_id', uid);
+  }
+  return uid;
+}
+
 export default function IntelPage() {
   const [reports, setReports] = useState<ThreatReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'new' | 'top'>('new');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [votingId, setVotingId] = useState<string | null>(null);
 
   // Modal form state
   const [formUrl, setFormUrl] = useState('');
@@ -32,7 +43,10 @@ export default function IntelPage() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch(`/api/v1/intel/feed?category=${categoryFilter}&sort=${sortBy}`);
+      const uid = getPersistentUserId();
+      const res = await fetch(`/api/v1/intel/feed?category=${categoryFilter}&sort=${sortBy}`, {
+        headers: { 'x-user-id': uid },
+      });
       if (res.ok) {
         const data = await res.json();
         setReports(data.items || []);
@@ -49,24 +63,38 @@ export default function IntelPage() {
   }, [categoryFilter, sortBy]);
 
   const handleVote = async (reportId: string, value: 1 | -1) => {
+    if (votingId === reportId) return;
+    setVotingId(reportId);
     try {
+      const uid = getPersistentUserId();
       const res = await fetch(`/api/v1/intel/reports/${reportId}/vote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': uid,
+        },
+        body: JSON.stringify({ value, userId: uid }),
       });
       if (res.ok) {
         const data = await res.json();
         setReports(prev =>
           prev.map(r =>
             r.id === reportId
-              ? { ...r, upvotes: data.upvotes, downvotes: data.downvotes, status: data.status, userVoted: value }
+              ? {
+                  ...r,
+                  upvotes: data.upvotes,
+                  downvotes: data.downvotes,
+                  status: data.status,
+                  userVoted: data.userVote === 1 ? 1 : data.userVote === -1 ? -1 : undefined,
+                }
               : r
           )
         );
       }
     } catch {
       //
+    } finally {
+      setVotingId(null);
     }
   };
 
@@ -97,6 +125,8 @@ export default function IntelPage() {
       }
     } catch {
       //
+    } finally {
+      setVotingId(null);
     }
   };
 
@@ -216,27 +246,29 @@ export default function IntelPage() {
                   <div className="flex items-center gap-1 bg-[#FBEBDA] rounded-full p-1 border border-[#E8C9AA]">
                     <button
                       onClick={() => handleVote(report.id, 1)}
-                      className={`p-1.5 rounded-full text-xs transition-all flex items-center gap-1 ${
+                      disabled={votingId === report.id}
+                      className={`p-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 px-2.5 ${
                         report.userVoted === 1
-                          ? 'bg-[#468D8B] text-white font-bold'
-                          : 'text-ink hover:text-[#468D8B]'
-                      }`}
-                      title="Upvote Threat Report"
+                          ? 'bg-[#468D8B] text-white font-bold shadow-sm'
+                          : 'text-ink hover:text-[#468D8B] hover:bg-[#E8C9AA]/40'
+                      } ${votingId === report.id ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      title={report.userVoted === 1 ? 'Upvoted (click to undo)' : 'Upvote (increments once)'}
                     >
-                      <ThumbsUp size={14} />
-                      <span>{report.upvotes}</span>
+                      <ThumbsUp size={13} className={report.userVoted === 1 ? 'fill-current' : ''} />
+                      <span className="font-semibold">{report.upvotes}</span>
                     </button>
                     <button
                       onClick={() => handleVote(report.id, -1)}
-                      className={`p-1.5 rounded-full text-xs transition-all flex items-center gap-1 ${
+                      disabled={votingId === report.id}
+                      className={`p-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 px-2.5 ${
                         report.userVoted === -1
-                          ? 'bg-[#DA6D58] text-white font-bold'
-                          : 'text-ink hover:text-[#DA6D58]'
-                      }`}
-                      title="Downvote"
+                          ? 'bg-[#DA6D58] text-white font-bold shadow-sm'
+                          : 'text-ink hover:text-[#DA6D58] hover:bg-[#E8C9AA]/40'
+                      } ${votingId === report.id ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      title={report.userVoted === -1 ? 'Downvoted (click to undo)' : 'Downvote (increments once)'}
                     >
-                      <ThumbsDown size={14} />
-                      <span>{report.downvotes}</span>
+                      <ThumbsDown size={13} className={report.userVoted === -1 ? 'fill-current' : ''} />
+                      <span className="font-semibold">{report.downvotes}</span>
                     </button>
                   </div>
                 </div>
