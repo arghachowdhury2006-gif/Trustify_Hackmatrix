@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { validateUrlForSSRF } from '../src/lib/engines/ssrfGuard.ts';
-import { analyzeThreatFeatures } from '../src/lib/engines/threatEngine.ts';
-import { computeUnifiedTrustScore } from '../src/lib/engines/scoringEngine.ts';
-import { inspectCertificate } from '../src/lib/engines/certificateEngine.ts';
+import { validateUrlForSSRF } from '../src/lib/engines/ssrfGuard';
+import { analyzeThreatFeatures } from '../src/lib/engines/threatEngine';
+import { computeUnifiedTrustScore } from '../src/lib/engines/scoringEngine';
+import { inspectCertificate } from '../src/lib/engines/certificateEngine';
 
 test('SSRF Guard: blocks dangerous private and metadata targets', async () => {
   const loopback = await validateUrlForSSRF('http://127.0.0.1:8080/admin');
