@@ -111,11 +111,6 @@ export default function DashboardPage() {
         </div>
 
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#182b34]/80 border border-[#468D8B]/50 text-xs font-semibold text-[#74B3A8] mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#468D8B] animate-ping" />
-            <span>AI Trust Architecture · 4-Engine Fusion</span>
-          </div>
-
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#F6DAC0] leading-tight">
             AI-Powered Web Threat Detection & Digital Trust Intelligence
           </h1>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Search,
   Bell,
@@ -34,6 +34,8 @@ export const Topbar: React.FC<TopbarProps> = ({
   unreadCount = 2,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
+  const isDashboard = pathname === '/';
   const [quickSearch, setQuickSearch] = useState('');
 
   // Profile state
@@ -174,20 +176,32 @@ export const Topbar: React.FC<TopbarProps> = ({
             <Menu size={22} />
           </button>
 
-          {/* Global Quick Scan Bar */}
-          <form onSubmit={handleSearchSubmit} className="relative max-w-md w-64 md:w-96">
-            <input
-              type="text"
-              value={quickSearch}
-              onChange={(e) => setQuickSearch(e.target.value)}
-              placeholder="Scan website (e.g. paypa1.com or domain)..."
-              className="w-full bg-[#182b34] text-[#F6DAC0] placeholder-[#F6DAC0]/50 text-xs md:text-sm pl-10 pr-4 py-2.5 rounded-full border border-[#2d4a57] focus:outline-none focus:border-[#468D8B] focus:ring-1 focus:ring-[#468D8B] transition-all"
-            />
-            <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#74B3A8]"
-            />
-          </form>
+          {/* On Dashboard: AI Trust Architecture badge; on other pages: Global Quick Scan Bar */}
+          {isDashboard ? (
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#182b34] border border-[#468D8B]/50 text-xs md:text-sm font-semibold text-[#74B3A8] shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#74B3A8] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#468D8B]"></span>
+              </span>
+              <span className="text-[#F6DAC0] font-medium tracking-wide">
+                AI Trust Architecture · 4-Engine Fusion
+              </span>
+            </div>
+          ) : (
+            <form onSubmit={handleSearchSubmit} className="relative max-w-md w-64 md:w-96">
+              <input
+                type="text"
+                value={quickSearch}
+                onChange={(e) => setQuickSearch(e.target.value)}
+                placeholder="Scan website (e.g. paypa1.com or domain)..."
+                className="w-full bg-[#182b34] text-[#F6DAC0] placeholder-[#F6DAC0]/50 text-xs md:text-sm pl-10 pr-4 py-2.5 rounded-full border border-[#2d4a57] focus:outline-none focus:border-[#468D8B] focus:ring-1 focus:ring-[#468D8B] transition-all"
+              />
+              <Search
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#74B3A8]"
+              />
+            </form>
+          )}
         </div>
 
         {/* Right Actions */}
