@@ -135,3 +135,4 @@ Tools provided:
 ## ⚖️ Responsible Use Policy
 
 Trustify is strictly designed for **defense, validation, and threat mitigation**. All scans are passive. No exploit payloads, unauthorized port scans, or intrusive attacks are ever performed.
+

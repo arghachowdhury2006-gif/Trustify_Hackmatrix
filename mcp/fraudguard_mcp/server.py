@@ -69,3 +69,4 @@ if __name__ == "__main__":
     # Quick health check
     health = _make_request("/health")
     print(f"Connection Status: {health.get('status', 'offline')}")
+
