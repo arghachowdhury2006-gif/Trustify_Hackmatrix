@@ -206,12 +206,6 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">
-          {/* Live Status Pill */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#182b34] border border-[#2d4a57] text-xs">
-            <span className="w-2 h-2 rounded-full bg-[#74B3A8] animate-pulse" />
-            <span className="text-[#F6DAC0]/90 font-medium">All 4 Engines Active</span>
-          </div>
-
           {/* Alerts Bell Link */}
           <Link
             href="/alerts"
