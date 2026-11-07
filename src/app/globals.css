@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-ink: #213843;
+  --color-ink-80: #2d4a57;
+  --color-ink-60: #4b6671;
+  --color-primary: #468D8B;
+  --color-primary-hover: #3a7a78;
+  --color-accent: #74B3A8;
+  --color-surface: #F6DAC0;
+  --color-surface-soft: #FBEBDA;
+  --color-surface-line: #E8C9AA;
+  --color-warning: #FEAF76;
+  --color-danger: #DA6D58;
+  --color-safe-bg: rgba(116, 179, 168, 0.25);
+  --color-warn-bg: rgba(254, 175, 118, 0.30);
+  --color-danger-bg: rgba(218, 109, 88, 0.22);
+  --text-on-dark: #F6DAC0;
+  --text-on-cream: #213843;
+  --radius-card: 20px;
+  --radius-btn: 999px;
+  --radius-input: 14px;
+  --shadow-card: 0 8px 24px rgba(33, 56, 67, 0.12);
+}
+
+body {
+  color: var(--color-ink);
+  background-color: #1a2c35;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(33, 56, 67, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: #468D8B;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #74B3A8;
+}
+
+/* Mountain & sun motif gradient */
+.hero-gradient {
+  background: linear-gradient(135deg, #182b34 0%, #213843 45%, #2a525f 80%, #366c72 100%);
+}
+
+.cream-card {
+  background-color: #F6DAC0;
+  border: 1px solid #E8C9AA;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(33, 56, 67, 0.12);
+}
+
+.cream-card-soft {
+  background-color: #FBEBDA;
+  border: 1px solid #E8C9AA;
+  border-radius: 14px;
+}
