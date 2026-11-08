@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: 'Trustify — AI-Powered Web Threat Detection & Digital Trust Intelligence',
   description:
     'An intelligent platform that detects phishing and malicious websites by fusing threat analysis, web security assessment, certificate validation, and collaborative threat intelligence into an explainable trust score.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({

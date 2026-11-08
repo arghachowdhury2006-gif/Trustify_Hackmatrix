@@ -26,8 +26,12 @@ export default function RegisterPage() {
         {/* Left: Ink Panel */}
         <div className="hero-gradient p-8 md:p-12 text-[#F6DAC0] flex flex-col justify-between">
           <div>
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#468D8B] to-[#74B3A8] flex items-center justify-center text-[#213843] mb-6 shadow-md">
-              <ShieldCheck size={28} className="stroke-[2.5]" />
+            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-md border border-[#468D8B]/40 mb-6 bg-[#FBEBDA] flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="Trustify Logo"
+                className="w-full h-full object-cover scale-105"
+              />
             </div>
             <h2 className="text-3xl font-black tracking-tight leading-tight">
               Join Trustify Collaborative Defense

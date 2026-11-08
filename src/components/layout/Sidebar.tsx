@@ -61,8 +61,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Brand Header */}
         <div className="h-20 flex items-center px-6 border-b border-[#2d4a57] gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#468D8B] to-[#74B3A8] flex items-center justify-center text-[#213843] shadow-md">
-            <ShieldCheck size={24} className="stroke-[2.5]" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md border border-[#468D8B]/40 flex-shrink-0 bg-[#FBEBDA] flex items-center justify-center">
+            <img
+              src="/logo.png"
+              alt="Trustify Logo"
+              className="w-full h-full object-cover scale-105"
+            />
           </div>
           <div>
             <span className="font-extrabold text-lg tracking-tight text-[#F6DAC0] block leading-none">
