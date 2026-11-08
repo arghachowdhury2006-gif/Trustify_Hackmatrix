@@ -26,9 +26,6 @@ export default function AlertsPage() {
       if (res.ok) {
         const data = await res.json();
         setAlerts(data.items || []);
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('trustify_alerts_updated'));
-        }
       }
     } catch {
       //
@@ -39,6 +36,13 @@ export default function AlertsPage() {
 
   useEffect(() => {
     fetchAlerts();
+    const handleUpdate = () => {
+      fetchAlerts();
+    };
+    window.addEventListener('trustify_alerts_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('trustify_alerts_updated', handleUpdate);
+    };
   }, []);
 
   const handleMarkRead = async (id: string) => {
@@ -232,8 +236,14 @@ export default function AlertsPage() {
               </div>
             ))
           ) : (
-            <div className="p-8 text-center text-sm text-ink-60">
-              No matching alerts found in this view.
+            <div className="p-12 text-center flex flex-col items-center justify-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#468D8B]/15 flex items-center justify-center text-[#468D8B]">
+                <Bell size={22} />
+              </div>
+              <p className="text-sm font-bold text-ink">No Security Alerts Triggered</p>
+              <p className="text-xs text-ink-60 max-w-md leading-relaxed">
+                Security alerts will automatically appear here when you run a URL scan or Certificate Forensics test that encounters threats, expired certificates, brand impersonation, or cryptographic weaknesses.
+              </p>
             </div>
           )}
         </div>

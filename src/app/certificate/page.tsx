@@ -54,6 +54,9 @@ export default function CertificatePage() {
       }
 
       setCertData(json.summary || json);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('trustify_alerts_updated'));
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'Error occurred while verifying certificate');
     } finally {
@@ -76,6 +79,9 @@ export default function CertificatePage() {
       const json = await res.json();
       if (res.ok && json.summary) {
         setCertData(json.summary);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('trustify_alerts_updated'));
+        }
       }
     } catch {
       //
@@ -99,6 +105,9 @@ export default function CertificatePage() {
       const json = await res.json();
       if (res.ok && json.summary) {
         setCertData(json.summary);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('trustify_alerts_updated'));
+        }
       }
     } catch {
       //

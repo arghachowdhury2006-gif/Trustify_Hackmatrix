@@ -21,7 +21,13 @@ declare global {
 }
 
 function initDb() {
-  if (global.__TRUSTIFY_DB) return global.__TRUSTIFY_DB;
+  if (global.__TRUSTIFY_DB) {
+    // Clear out any previously seeded demo alerts
+    global.__TRUSTIFY_DB.alerts.delete('alert-01');
+    global.__TRUSTIFY_DB.alerts.delete('alert-02');
+    global.__TRUSTIFY_DB.alerts.delete('alert-03');
+    return global.__TRUSTIFY_DB;
+  }
 
   const scans = new Map<string, ScanResult>();
   const threatReports = new Map<string, ThreatReport>();
@@ -294,48 +300,8 @@ function initDb() {
     threatReports.set(r.id, r);
   }
 
-  // 3. Seed Alerts
-  const initialAlerts: Alert[] = [
-    {
-      id: 'alert-01',
-      scanId: 'scan-paypa1-01',
-      type: 'malicious_site',
-      title: 'Malicious Brand Impersonation Detected',
-      detail: 'paypa1-secure-login.com detected attempting brand spoofing of PayPal.',
-      url: 'https://paypa1-secure-login.com/auth/verify',
-      severity: 'high',
-      isRead: false,
-      isDismissed: false,
-      createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    },
-    {
-      id: 'alert-02',
-      scanId: 'scan-badssl-expired',
-      type: 'cert_issue',
-      title: 'Expired Certificate Encountered',
-      detail: 'expired.badssl.com has an expired TLS certificate chain.',
-      url: 'https://expired.badssl.com',
-      severity: 'medium',
-      isRead: false,
-      isDismissed: false,
-      createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    },
-    {
-      id: 'alert-03',
-      type: 'watchlist',
-      title: 'Watchlist Expiry Warning: api.trustify-demo.org',
-      detail: 'Certificate expires in 11 days. Scheduled renewal recommended.',
-      url: 'https://api.trustify-demo.org',
-      severity: 'medium',
-      isRead: true,
-      isDismissed: false,
-      createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-    }
-  ];
-
-  for (const a of initialAlerts) {
-    alerts.set(a.id, a);
-  }
+  // 3. Alerts (empty initially — alerts are created dynamically only when real tests/scans run)
+  // No hardcoded alerts seeded
 
   // 4. Seed API Keys
   const defaultApiKey: ApiKeyRecord = {
