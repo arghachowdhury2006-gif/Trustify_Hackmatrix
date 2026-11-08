@@ -1,11 +1,51 @@
-# 🛡️ Trustify — AI-Powered Web Threat Detection & Digital Trust Intelligence
+<p align="center">
+  <img src="assets/trustify-logo.png" alt="Trustify Logo" width="140" />
+</p>
 
-*Detect · Analyze · Stay Safe*
+<h1 align="center">🛡️ Trustify — AI-Powered Web Threat Detection & Digital Trust Intelligence</h1>
 
-**Trustify** is an intelligent web security platform that provides real-time detection of phishing websites, fraudulent recruitment and payment portals, deceptive domain impersonation, and Certificate Authority (CA) trust infrastructure vulnerabilities in seconds.
+<p align="center">
+  <em>Detect · Analyze · Stay Safe</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Hackathon-HackMatrix%202026-468D8B?style=for-the-badge&logo=shield" alt="HackMatrix 2026" />
+  <img src="https://img.shields.io/badge/Next.js%2014-App%20Router-213843?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 14" />
+  <img src="https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Security-Passive%20Scan-74B3A8?style=for-the-badge&logo=security" alt="Passive Inspection" />
+  <img src="https://img.shields.io/badge/License-MIT-FEAF76?style=for-the-badge" alt="License: MIT" />
+</p>
+
+<p align="center">
+  <a href="#demo"><b>Demo</b></a> •
+  <a href="#features"><b>Features</b></a> •
+  <a href="#architecture"><b>Architecture</b></a> •
+  <a href="#quick-start"><b>Quick Start</b></a> •
+  <a href="#api"><b>API</b></a> •
+  <a href="#team"><b>Team</b></a>
+</p>
+
+<p align="center">
+  <img src="assets/trustify-dashboard.png" alt="Trustify – AI-Powered Digital Trust Intelligence Dashboard" width="100%" />
+  <br />
+  <em>Trustify – AI-Powered Digital Trust Intelligence Dashboard</em>
+</p>
 
 ---
 
+<a id="demo"></a>
+## 🖥️ Demo & Overview
+
+**Trustify** is an intelligent web security platform that provides real-time detection of phishing websites, fraudulent recruitment and payment portals, deceptive domain impersonation, and Certificate Authority (CA) trust infrastructure vulnerabilities in seconds.
+
+- **Interactive Security Dashboard**: Real-time multi-engine inspection running on Next.js 14 with instant trust verdicts.
+- **Local Application Access**: `http://localhost:3000`
+- **Scenarios Ready-to-Test**: One-click assessment for deceptive domain impersonation, expired/self-signed SSL certificates, and phishing vectors.
+
+---
+
+<a id="features"></a>
 ## 🌟 Core Pillars & Architectural Engines
 
 Trustify unifies four independent security inspection engines into an explainable **0–100 Digital Trust Score**:
@@ -37,6 +77,41 @@ Trustify unifies four independent security inspection engines into an explainabl
 
 ---
 
+<a id="architecture"></a>
+## 🧭 Architecture & System Design
+
+```
+                    ┌───────────────────────────────────────────────┐
+                    │       Next.js 14 Frontend & Client UI        │
+                    │   (App Router · Tailwind CSS · shadcn/ui)     │
+                    └───────────────────────┬───────────────────────┘
+                                            │ HTTPS / REST API & SSE Events
+                                   ┌────────▼────────┐
+                                   │ Next.js API / GW│  Auth · SSRF Guard · Rate Limit
+                                   └───┬─────────┬───┘
+                                       │         │
+                 ┌─────────────────────┼─────────┴─────────────────────┐
+                 │                     │                               │
+        ┌────────▼────────┐   ┌────────▼────────┐             ┌────────▼────────┐
+        │  Threat Engine  │   │   Cert Engine   │             │  WebSec Engine  │
+        │  ML Heuristics  │   │  TLS / CT Logs  │             │ Security Headers│
+        └────────┬────────┘   └────────┬────────┘             └────────┬────────┘
+                 │                     │                               │
+                 └─────────────────────┼───────────────────────────────┘
+                                       │
+                              ┌────────▼────────┐
+                              │  Intel Engine   │
+                              │ Community Feeds │
+                              └────────┬────────┘
+                                       │
+                         ┌─────────────▼─────────────┐
+                         │   0–100 Trust Score Agg   │
+                         │ Safe | Suspicious | Alert │
+                         └───────────────────────────┘
+```
+
+---
+
 ## 📐 Scoring Formula & Verdicts
 
 $$\text{Risk} = 0.40 \times \text{ThreatRisk} + 0.25 \times \text{CertRisk} + 0.20 \times \text{WebSecRisk} + 0.15 \times \text{IntelRisk}$$
@@ -48,6 +123,7 @@ $$\text{Score} = \max(0, \min(100, 100 - \text{Risk}))$$
 
 ---
 
+<a id="quick-start"></a>
 ## 🚀 Quick Start
 
 ### 1. Installation
@@ -87,6 +163,7 @@ Try scanning these test targets directly in the UI or via API:
 
 ---
 
+<a id="api"></a>
 ## 🔌 API Reference (`/api/v1`)
 
 | Method | Endpoint | Description |
@@ -129,6 +206,25 @@ Tools provided:
 - **Soft Cream (`#FBEBDA`)**: Inputs and nested cards
 - **Peach (`#FEAF76`)**: Suspicious / medium severity warning
 - **Coral (`#DA6D58`)**: Malicious / high severity alert
+
+---
+
+<a id="team"></a>
+## Meet Our Team
+
+| Number | Team Member | GitHub Profile |
+|:---:|---|---|
+| 1 | **Sibsankar Maity** | [@oii-siba](https://github.com/oii-siba) |
+| 2 | **Arghya Chowdhury** | [@arghachowdhury2006-gif](https://github.com/arghachowdhury2006-gif) |
+| 3 | **Sujan Bhowmik** | [@sujanbhowmik12](https://github.com/sujanbhowmik12) |
+| 4 | **Sayan Pattanayak** | [@sayan3239](https://github.com/sayan3239) |
+
+- **License**: MIT
+
+<p align="center">
+  Built with innovation, teamwork & passion ❤️<br />
+  HackMatrix 2026
+</p>
 
 ---
 
