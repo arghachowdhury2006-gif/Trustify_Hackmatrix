@@ -111,11 +111,7 @@ export default function CertificatePage() {
     { label: 'Expired Test', host: 'expired.badssl.com' },
     { label: 'Self-Signed Test', host: 'self-signed.badssl.com' },
     { label: 'Wrong Host Test', host: 'wrong.host.badssl.com' },
-    { label: 'Untrusted CA Test', host: 'untrusted-root.badssl.com' },
-    { label: 'Weak RSA (1024-bit)', host: 'rsa1024.badssl.com' },
-    { label: 'Revoked Test', host: 'revoked.badssl.com' },
     { label: 'Google (Valid)', host: 'google.com' },
-    { label: 'GitHub (Valid)', host: 'github.com' },
   ];
 
   function getStatusStyle(status: ForensicTestStatus) {
