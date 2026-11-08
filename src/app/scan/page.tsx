@@ -135,6 +135,9 @@ function ScanContent() {
       setProgress(1.0);
       setStages(prev => prev.map(s => ({ ...s, state: 'completed' })));
       setScanResult(data);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('trustify_alerts_updated'));
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred during scanning.');
     } finally {

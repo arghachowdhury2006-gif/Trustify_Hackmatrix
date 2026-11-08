@@ -26,6 +26,9 @@ export default function AlertsPage() {
       if (res.ok) {
         const data = await res.json();
         setAlerts(data.items || []);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('trustify_alerts_updated'));
+        }
       }
     } catch {
       //
@@ -46,6 +49,9 @@ export default function AlertsPage() {
         body: JSON.stringify({ isRead: true }),
       });
       setAlerts(prev => prev.map(a => (a.id === id ? { ...a, isRead: true } : a)));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('trustify_alerts_updated'));
+      }
     } catch {
       //
     }
@@ -59,6 +65,9 @@ export default function AlertsPage() {
         body: JSON.stringify({ isDismissed: true }),
       });
       setAlerts(prev => prev.filter(a => a.id !== id));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('trustify_alerts_updated'));
+      }
     } catch {
       //
     }
@@ -68,6 +77,9 @@ export default function AlertsPage() {
     try {
       await fetch('/api/v1/alerts', { method: 'POST' });
       setAlerts(prev => prev.map(a => ({ ...a, isRead: true })));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('trustify_alerts_updated'));
+      }
     } catch {
       //
     }

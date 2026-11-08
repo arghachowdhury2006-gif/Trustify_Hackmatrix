@@ -1,28 +1,50 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(2);
+  const [alertsCount, setAlertsCount] = useState<number>(0);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
-  useEffect(() => {
-    // Poll unread alerts count
-    const fetchUnread = async () => {
-      try {
-        const res = await fetch('/api/v1/alerts');
-        if (res.ok) {
-          const data = await res.json();
-          setUnreadCount(data.unread_count ?? 0);
-        }
-      } catch {
-        // fallback
+  const fetchAlertsCount = useCallback(async () => {
+    try {
+      const res = await fetch('/api/v1/alerts');
+      if (res.ok) {
+        const data = await res.json();
+        const total = data.total ?? (Array.isArray(data.items) ? data.items.length : 0);
+        const unread = data.unread_count ?? 0;
+        setAlertsCount(total);
+        setUnreadCount(unread);
       }
-    };
-    fetchUnread();
+    } catch {
+      // fallback
+    }
   }, []);
+
+  // Refresh alert count when route changes
+  useEffect(() => {
+    fetchAlertsCount();
+  }, [pathname, fetchAlertsCount]);
+
+  // Refresh alert count on custom event and polling
+  useEffect(() => {
+    const handleUpdate = () => {
+      fetchAlertsCount();
+    };
+
+    window.addEventListener('trustify_alerts_updated', handleUpdate);
+    const interval = setInterval(fetchAlertsCount, 3000);
+
+    return () => {
+      window.removeEventListener('trustify_alerts_updated', handleUpdate);
+      clearInterval(interval);
+    };
+  }, [fetchAlertsCount]);
 
   return (
     <div className="min-h-screen bg-[#182b34] text-[#213843] flex">
@@ -30,6 +52,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        alertsCount={alertsCount}
         unreadAlertsCount={unreadCount}
       />
 

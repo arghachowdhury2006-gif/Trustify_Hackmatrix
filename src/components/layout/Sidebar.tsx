@@ -18,24 +18,27 @@ import {
 } from 'lucide-react';
 
 interface SidebarProps {
+  alertsCount?: number;
   unreadAlertsCount?: number;
   isOpen?: boolean;
   onClose?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  unreadAlertsCount = 2,
+  alertsCount,
+  unreadAlertsCount,
   isOpen = false,
   onClose,
 }) => {
   const pathname = usePathname();
+  const displayBadge = alertsCount !== undefined ? alertsCount : unreadAlertsCount;
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/scan', label: 'URL Scanner', icon: Search },
     { href: '/certificate', label: 'Certificate Forensics', icon: Lock },
     { href: '/intel', label: 'Threat Intelligence', icon: Radio },
-    { href: '/alerts', label: 'Security Alerts', icon: Bell, badge: unreadAlertsCount },
+    { href: '/alerts', label: 'Security Alerts', icon: Bell, badge: displayBadge },
     { href: '/history', label: 'Scan History', icon: History },
     { href: '/settings', label: 'Settings & API', icon: Settings },
     { href: '/help', label: 'Help & Knowledge Base', icon: HelpCircle },
