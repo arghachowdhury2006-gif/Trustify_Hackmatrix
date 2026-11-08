@@ -12,12 +12,44 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim()) return;
     setLoading(true);
-    setTimeout(() => {
-      router.push('/');
-    }, 600);
+
+    try {
+      const derivedName = email.split('@')[0].replace(/[._-]/g, ' ');
+      const formattedName = derivedName
+        ? derivedName.charAt(0).toUpperCase() + derivedName.slice(1)
+        : 'Security Analyst';
+
+      await fetch('/api/v1/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (typeof window !== 'undefined') {
+        const existing = localStorage.getItem('trustify_user_profile');
+        let currentName = formattedName;
+        if (existing) {
+          try {
+            const p = JSON.parse(existing);
+            if (p.name) currentName = p.name;
+          } catch {}
+        }
+        localStorage.setItem(
+          'trustify_user_profile',
+          JSON.stringify({ name: currentName, email: email.trim() })
+        );
+        window.dispatchEvent(new Event('trustify_profile_updated'));
+      }
+    } catch {
+      //
+    } finally {
+      setTimeout(() => {
+        router.push('/');
+      }, 500);
+    }
   };
 
   return (

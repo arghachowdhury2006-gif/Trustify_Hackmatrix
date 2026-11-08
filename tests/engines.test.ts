@@ -401,3 +401,14 @@ test('Audit Suite Aggregation: Computes PASS/FAIL/WARNING tallies and overall st
   assert.ok(audit.failedCount >= 2, `Expected >= 2 failed tests, got ${audit.failedCount}`);
   assert.equal(audit.passedCount + audit.failedCount + audit.warningCount + audit.unknownCount, 6, 'Total tests evaluated must be exactly 6');
 });
+
+test('Security Audit: SSRF guard protects certificate forensic targets', async () => {
+  const localTarget = await validateUrlForSSRF('https://127.0.0.1');
+  assert.equal(localTarget.safe, false, 'SSRF must block 127.0.0.1 in cert check');
+
+  const metadataTarget = await validateUrlForSSRF('https://169.254.169.254');
+  assert.equal(metadataTarget.safe, false, 'SSRF must block metadata IP in cert check');
+
+  const hostnameLocal = await validateUrlForSSRF('https://internal.local');
+  assert.equal(hostnameLocal.safe, false, 'SSRF must block .local domains');
+});

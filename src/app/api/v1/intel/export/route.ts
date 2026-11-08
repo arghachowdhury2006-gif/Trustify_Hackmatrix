@@ -38,14 +38,26 @@ export async function GET(req: NextRequest) {
         indicator_types: [r.category === 'phishing' ? 'malicious-activity' : 'anomalous-activity'],
       })),
     };
-    return NextResponse.json(stixBundle);
+    return new Response(JSON.stringify(stixBundle, null, 2), {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="trustify_stix21_bundle.json"',
+      },
+    });
   }
 
-  return NextResponse.json({
+  const jsonPayload = {
     feed_name: 'Trustify Threat Intelligence Feed',
     exported_at: new Date().toISOString(),
     total_indicators: reports.length,
     indicators: reports,
+  };
+
+  return new Response(JSON.stringify(jsonPayload, null, 2), {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="trustify_threat_intel_ioc.json"',
+    },
   });
 }
 

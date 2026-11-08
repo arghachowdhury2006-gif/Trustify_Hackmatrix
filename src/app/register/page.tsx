@@ -12,12 +12,31 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim() || !email.trim()) return;
     setLoading(true);
-    setTimeout(() => {
-      router.push('/');
-    }, 600);
+
+    try {
+      await fetch('/api/v1/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), role: 'Security Analyst' }),
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'trustify_user_profile',
+          JSON.stringify({ name: name.trim(), email: email.trim() })
+        );
+        window.dispatchEvent(new Event('trustify_profile_updated'));
+      }
+    } catch {
+      //
+    } finally {
+      setTimeout(() => {
+        router.push('/');
+      }, 500);
+    }
   };
 
   return (

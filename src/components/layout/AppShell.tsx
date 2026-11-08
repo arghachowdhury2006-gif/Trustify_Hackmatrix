@@ -31,17 +31,25 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     fetchAlertsCount();
   }, [pathname, fetchAlertsCount]);
 
-  // Refresh alert count on custom event and polling
+  // Refresh alert count on custom event, route transition, and visibility-aware polling
   useEffect(() => {
     const handleUpdate = () => {
       fetchAlertsCount();
     };
 
+    const pollIfVisible = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        fetchAlertsCount();
+      }
+    };
+
     window.addEventListener('trustify_alerts_updated', handleUpdate);
-    const interval = setInterval(fetchAlertsCount, 3000);
+    document.addEventListener('visibilitychange', pollIfVisible);
+    const interval = setInterval(pollIfVisible, 12000);
 
     return () => {
       window.removeEventListener('trustify_alerts_updated', handleUpdate);
+      document.removeEventListener('visibilitychange', pollIfVisible);
       clearInterval(interval);
     };
   }, [fetchAlertsCount]);

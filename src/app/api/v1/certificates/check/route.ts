@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { inspectCertificate } from '@/lib/engines/certificateEngine';
+import { validateUrlForSSRF } from '@/lib/engines/ssrfGuard';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +16,21 @@ export async function POST(req: NextRequest) {
     }
 
     // Strip scheme if present
-    host = host.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
+    host = host.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].trim();
+
+    // SSRF Guard Check: prevent probing internal networks or cloud metadata via TLS
+    const ssrfCheck = await validateUrlForSSRF(`https://${host}`);
+    if (!ssrfCheck.safe) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'SSRF_BLOCKED',
+            message: ssrfCheck.reason || 'Target host blocked by security policy (SSRF protection).',
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     const result = await inspectCertificate(host, port, 6000);
 

@@ -160,7 +160,10 @@ function ScanContent() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `trustify_scan_${scanResult.domain.name}.json`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const submitThreatReport = async () => {
