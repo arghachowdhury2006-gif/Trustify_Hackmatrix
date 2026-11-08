@@ -54,6 +54,43 @@ export interface CTEntry {
   isAnomalous: boolean;
 }
 
+export type ForensicTestStatus = 'PASS' | 'FAIL' | 'WARNING' | 'UNKNOWN';
+
+export interface ForensicSecurityTest {
+  id: 'self_signed' | 'untrusted_ca' | 'weak_rsa_key' | 'invalid_signature' | 'chain_validation' | 'revocation_check';
+  title: string;
+  category: string;
+  status: ForensicTestStatus;
+  summary: string;
+  technicalDetails: string;
+  recommendation?: string;
+  timestamp: string;
+  actualKeySize?: number;
+  issuer?: string;
+  subject?: string;
+  signatureValid?: boolean;
+  ocspStatus?: 'Good' | 'Revoked' | 'Unknown' | 'Unsupported';
+  crlStatus?: 'Good' | 'Revoked' | 'Unknown' | 'Unsupported';
+}
+
+export interface CertificateSecurityAudit {
+  testedAt: string;
+  target: string;
+  overallStatus: 'SECURE' | 'AT_RISK' | 'CRITICAL';
+  passedCount: number;
+  failedCount: number;
+  warningCount: number;
+  unknownCount: number;
+  tests: {
+    selfSigned: ForensicSecurityTest;
+    untrustedCa: ForensicSecurityTest;
+    weakRsaKey: ForensicSecurityTest;
+    invalidSignature: ForensicSecurityTest;
+    chainValidation: ForensicSecurityTest;
+    revocationCheck: ForensicSecurityTest;
+  };
+}
+
 export interface CertificateSummary {
   valid: boolean;
   subject: string;
@@ -67,6 +104,7 @@ export interface CertificateSummary {
   chain?: CertNode[];
   sans?: string[];
   weakKeyAnalysis?: WeakKeyAnalysis;
+  securityAudit?: CertificateSecurityAudit;
   ct?: {
     total: number;
     last30d: number;

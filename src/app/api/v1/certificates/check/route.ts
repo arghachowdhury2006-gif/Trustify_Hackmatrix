@@ -19,6 +19,14 @@ export async function POST(req: NextRequest) {
 
     const result = await inspectCertificate(host, port, 6000);
 
+    const testId = body?.testId;
+    let singleTestResult = null;
+    if (testId && result.summary.securityAudit?.tests) {
+      const testsMap = result.summary.securityAudit.tests as Record<string, any>;
+      const camelKey = testId.replace(/_([a-z])/g, (_: string, g: string) => g.toUpperCase());
+      singleTestResult = testsMap[camelKey] || testsMap[testId] || null;
+    }
+
     return NextResponse.json({
       host,
       valid: result.summary.valid,
@@ -35,6 +43,8 @@ export async function POST(req: NextRequest) {
       }),
       weak_key_analysis: result.summary.weakKeyAnalysis,
       ct: result.summary.ct,
+      security_audit: result.summary.securityAudit,
+      test_result: singleTestResult,
       summary: result.summary,
     });
   } catch (err: any) {

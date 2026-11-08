@@ -15,8 +15,15 @@ import {
   Info,
   CheckCircle,
   XCircle,
+  Play,
+  FileCheck,
+  Server,
+  Clock,
+  ExternalLink,
+  Shield,
+  HelpCircle,
 } from 'lucide-react';
-import { CertificateSummary } from '@/lib/types';
+import { CertificateSummary, ForensicSecurityTest, ForensicTestStatus } from '@/lib/types';
 import { CertificateChainGraphic } from '@/components/ui/CertificateChainGraphic';
 
 export default function CertificatePage() {
@@ -24,6 +31,8 @@ export default function CertificatePage() {
   const [loading, setLoading] = useState(false);
   const [certData, setCertData] = useState<CertificateSummary | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [runningAllTests, setRunningAllTests] = useState(false);
+  const [runningSingleTest, setRunningSingleTest] = useState<string | null>(null);
 
   const handleInspect = async (hostToInspect?: string) => {
     const target = hostToInspect || hostInput;
@@ -36,7 +45,7 @@ export default function CertificatePage() {
       const res = await fetch('/api/v1/certificates/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ host: target }),
+        body: JSON.stringify({ host: target.trim() }),
       });
 
       const json = await res.json();
@@ -52,13 +61,137 @@ export default function CertificatePage() {
     }
   };
 
+  const handleRunAllTests = async () => {
+    const target = hostInput.trim();
+    if (!target || runningAllTests || loading) return;
+
+    setRunningAllTests(true);
+    try {
+      const res = await fetch('/api/v1/certificates/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host: target }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.summary) {
+        setCertData(json.summary);
+      }
+    } catch {
+      //
+    } finally {
+      setRunningAllTests(false);
+    }
+  };
+
+  const handleRunSingleTest = async (testId: string) => {
+    const target = hostInput.trim();
+    if (!target || runningSingleTest || loading) return;
+
+    setRunningSingleTest(testId);
+    try {
+      const res = await fetch('/api/v1/certificates/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host: target, testId }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.summary) {
+        setCertData(json.summary);
+      }
+    } catch {
+      //
+    } finally {
+      setRunningSingleTest(null);
+    }
+  };
+
   const presetHosts = [
     { label: 'Expired Test', host: 'expired.badssl.com' },
     { label: 'Self-Signed Test', host: 'self-signed.badssl.com' },
     { label: 'Wrong Host Test', host: 'wrong.host.badssl.com' },
+    { label: 'Untrusted CA Test', host: 'untrusted-root.badssl.com' },
+    { label: 'Weak RSA (1024-bit)', host: 'rsa1024.badssl.com' },
+    { label: 'Revoked Test', host: 'revoked.badssl.com' },
     { label: 'Google (Valid)', host: 'google.com' },
     { label: 'GitHub (Valid)', host: 'github.com' },
   ];
+
+  function getStatusStyle(status: ForensicTestStatus) {
+    switch (status) {
+      case 'PASS':
+        return {
+          bg: 'bg-[#74B3A8]/20',
+          text: 'text-[#468D8B]',
+          border: 'border-[#468D8B]/40',
+          badgeBg: 'bg-[#468D8B] text-white',
+          icon: CheckCircle,
+          label: 'PASS',
+        };
+      case 'FAIL':
+        return {
+          bg: 'bg-[#DA6D58]/20',
+          text: 'text-[#DA6D58]',
+          border: 'border-[#DA6D58]/50',
+          badgeBg: 'bg-[#DA6D58] text-white',
+          icon: XCircle,
+          label: 'FAIL',
+        };
+      case 'WARNING':
+        return {
+          bg: 'bg-[#FEAF76]/25',
+          text: 'text-[#D97706]',
+          border: 'border-[#FEAF76]/50',
+          badgeBg: 'bg-[#FEAF76] text-[#213843]',
+          icon: AlertTriangle,
+          label: 'WARNING',
+        };
+      case 'UNKNOWN':
+      default:
+        return {
+          bg: 'bg-[#E8C9AA]/40',
+          text: 'text-ink-60',
+          border: 'border-[#E8C9AA]',
+          badgeBg: 'bg-[#E8C9AA] text-ink',
+          icon: HelpCircle,
+          label: 'UNKNOWN',
+        };
+    }
+  }
+
+  const testsList = certData?.securityAudit ? [
+    {
+      key: 'self_signed',
+      test: certData.securityAudit.tests.selfSigned,
+      icon: ShieldAlert,
+    },
+    {
+      key: 'untrusted_ca',
+      test: certData.securityAudit.tests.untrustedCa,
+      icon: Layers,
+    },
+    {
+      key: 'weak_rsa_key',
+      test: certData.securityAudit.tests.weakRsaKey,
+      icon: Key,
+    },
+    {
+      key: 'invalid_signature',
+      test: certData.securityAudit.tests.invalidSignature,
+      icon: FileCheck,
+    },
+    {
+      key: 'chain_validation',
+      test: certData.securityAudit.tests.chainValidation,
+      icon: ShieldCheck,
+    },
+    {
+      key: 'revocation_check',
+      test: certData.securityAudit.tests.revocationCheck,
+      icon: RotateCw,
+    },
+  ] : [];
 
   return (
     <div className="space-y-8">
@@ -270,6 +403,179 @@ export default function CertificatePage() {
             )}
           </div>
 
+          {/* NEW SECTION: Automated Certificate Security Test Suite (6 Forensic Checks) */}
+          {certData.securityAudit && (
+            <div className="cream-card p-6 md:p-8 space-y-6">
+              {/* Test Suite Header */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[#E8C9AA]">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Shield size={20} className="text-[#468D8B]" />
+                    <h3 className="text-xl font-black text-ink tracking-tight">
+                      Automated Certificate Security Test Suite
+                    </h3>
+                  </div>
+                  <p className="text-xs text-ink-60 max-w-xl">
+                    6 in-depth forensic checks verifying self-signed origin, Root CA trust anchors, RSA key length, cryptographic signature integrity, full hierarchy chain, and revocation status.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Overall Status Badge */}
+                  <div className="flex items-center gap-2">
+                    {certData.securityAudit.overallStatus === 'CRITICAL' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DA6D58]/20 border border-[#DA6D58]/50 text-[#DA6D58] text-xs font-bold font-mono">
+                        <XCircle size={14} />
+                        CRITICAL VULNERABILITY
+                      </span>
+                    ) : certData.securityAudit.overallStatus === 'AT_RISK' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FEAF76]/25 border border-[#FEAF76]/50 text-[#D97706] text-xs font-bold font-mono">
+                        <AlertTriangle size={14} />
+                        AT RISK
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#74B3A8]/20 border border-[#468D8B]/40 text-[#468D8B] text-xs font-bold font-mono">
+                        <CheckCircle size={14} />
+                        SECURE & COMPLIANT
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Run All Tests Button */}
+                  <button
+                    onClick={handleRunAllTests}
+                    disabled={runningAllTests || loading}
+                    className="px-5 py-2.5 rounded-btn bg-[#468D8B] hover:bg-[#3a7a78] text-white font-bold text-xs shadow-md transition-all disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <RotateCw size={14} className={runningAllTests ? 'animate-spin' : ''} />
+                    <span>{runningAllTests ? 'Executing All Tests...' : 'Run All Tests'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tally Metrics & Timestamp Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs bg-[#FBEBDA] p-3 rounded-xl border border-[#E8C9AA]">
+                <div className="flex flex-wrap items-center gap-2 font-mono">
+                  <span className="font-bold text-ink-60 text-[11px] uppercase tracking-wider mr-1">
+                    Test Results:
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#74B3A8]/25 text-[#468D8B] font-bold border border-[#468D8B]/30">
+                    {certData.securityAudit.passedCount} PASS
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#DA6D58]/20 text-[#DA6D58] font-bold border border-[#DA6D58]/30">
+                    {certData.securityAudit.failedCount} FAIL
+                  </span>
+                  {certData.securityAudit.warningCount > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FEAF76]/25 text-[#D97706] font-bold border border-[#FEAF76]/40">
+                      {certData.securityAudit.warningCount} WARNING
+                    </span>
+                  )}
+                  {certData.securityAudit.unknownCount > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#E8C9AA]/40 text-ink-60 font-bold border border-[#E8C9AA]">
+                      {certData.securityAudit.unknownCount} UNKNOWN
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[11px] text-ink-60 font-mono">
+                  <Clock size={12} />
+                  <span>Audit timestamp: {new Date(certData.securityAudit.testedAt).toLocaleTimeString()}</span>
+                </div>
+              </div>
+
+              {/* 6 Forensic Test Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {testsList.map(({ key, test, icon: IconComponent }) => {
+                  const style = getStatusStyle(test.status);
+                  const isRunningThis = runningSingleTest === key;
+
+                  return (
+                    <div
+                      key={key}
+                      className={`p-5 rounded-2xl border flex flex-col justify-between transition-all bg-[#FBEBDA] ${
+                        test.status === 'FAIL'
+                          ? 'border-[#DA6D58]/40 hover:border-[#DA6D58]'
+                          : test.status === 'WARNING'
+                          ? 'border-[#FEAF76]/60 hover:border-[#FEAF76]'
+                          : test.status === 'PASS'
+                          ? 'border-[#74B3A8]/40 hover:border-[#468D8B]'
+                          : 'border-[#E8C9AA]'
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        {/* Card Top: Category & Status Badge */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-ink-60 bg-[#E8C9AA]/40 px-2 py-0.5 rounded">
+                            {test.category}
+                          </span>
+
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${style.bg} ${style.text} ${style.border}`}
+                          >
+                            <style.icon size={13} />
+                            <span>{test.status}</span>
+                          </span>
+                        </div>
+
+                        {/* Card Title & Icon */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${style.bg} ${style.text}`}>
+                            <IconComponent size={16} />
+                          </div>
+                          <h4 className="text-sm font-bold text-ink leading-tight">
+                            {test.title}
+                          </h4>
+                        </div>
+
+                        {/* Headline Summary */}
+                        <p className="text-xs font-semibold text-ink leading-relaxed">
+                          {test.summary}
+                        </p>
+
+                        {/* Technical Details Box */}
+                        <div className="p-3 rounded-xl bg-white/80 border border-[#E8C9AA] text-[11px] font-mono text-ink-80 space-y-1.5 overflow-hidden">
+                          <div className="flex items-center justify-between text-[10px] text-ink-60 uppercase font-bold border-b border-[#E8C9AA]/40 pb-1">
+                            <span>Forensic Findings</span>
+                            {test.actualKeySize && <span>{test.actualKeySize} BITS</span>}
+                          </div>
+                          <p className="leading-relaxed break-words whitespace-pre-wrap">
+                            {test.technicalDetails}
+                          </p>
+                        </div>
+
+                        {/* Recommendation (if applicable) */}
+                        {test.recommendation && (
+                          <div className="p-2.5 rounded-lg bg-[#FEAF76]/15 border border-[#FEAF76]/30 text-[11px] text-[#213843]">
+                            <span className="font-bold text-[#D97706] block mb-0.5">Remediation:</span>
+                            <span>{test.recommendation}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Card Footer: Timestamp & Run Test Button */}
+                      <div className="pt-4 mt-4 border-t border-[#E8C9AA]/60 flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono text-ink-60 flex items-center gap-1">
+                          <Clock size={11} />
+                          {new Date(test.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+
+                        <button
+                          onClick={() => handleRunSingleTest(key)}
+                          disabled={isRunningThis || runningAllTests || loading}
+                          className="px-3 py-1.5 rounded-btn bg-[#FBEBDA] hover:bg-[#E8C9AA] text-ink text-xs font-semibold border border-[#E8C9AA] transition-all disabled:opacity-50 flex items-center gap-1.5"
+                          title={`Run ${test.title}`}
+                        >
+                          <Play size={11} className={isRunningThis ? 'animate-spin' : ''} />
+                          <span>{isRunningThis ? 'Running...' : 'Run Test'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Visual Trust Chain Graphic */}
           <div className="cream-card p-6 md:p-8">
             <h3 className="text-lg font-bold text-ink text-center mb-6">
@@ -333,4 +639,3 @@ export default function CertificatePage() {
     </div>
   );
 }
-
