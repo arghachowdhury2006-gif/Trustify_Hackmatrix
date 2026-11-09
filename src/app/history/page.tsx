@@ -35,6 +35,15 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetchHistory();
+    const handleUpdate = () => {
+      fetchHistory();
+    };
+    window.addEventListener('trustify_history_updated', handleUpdate);
+    window.addEventListener('trustify_alerts_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('trustify_history_updated', handleUpdate);
+      window.removeEventListener('trustify_alerts_updated', handleUpdate);
+    };
   }, [searchQuery, verdictFilter]);
 
   const handleClearHistory = async () => {
@@ -42,6 +51,9 @@ export default function HistoryPage() {
     try {
       await fetch('/api/v1/history', { method: 'DELETE' });
       setScans([]);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('trustify_history_updated'));
+      }
     } catch {
       //
     }
@@ -178,8 +190,16 @@ export default function HistoryPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-ink-60">
-                    No scan history records found.
+                  <td colSpan={6} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="w-10 h-10 rounded-full bg-[#468D8B]/15 flex items-center justify-center text-[#468D8B] mb-1">
+                        <History size={18} />
+                      </div>
+                      <span className="text-xs font-bold text-ink">No scan history records found</span>
+                      <span className="text-[11px] text-ink-60 max-w-sm leading-relaxed">
+                        When you perform a URL scan or run a Certificate Forensics test, each audit record will be logged and stored here automatically.
+                      </span>
+                    </div>
                   </td>
                 </tr>
               )}

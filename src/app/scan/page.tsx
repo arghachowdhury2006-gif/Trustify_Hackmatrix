@@ -137,6 +137,7 @@ function ScanContent() {
       setScanResult(data);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('trustify_alerts_updated'));
+        window.dispatchEvent(new Event('trustify_history_updated'));
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred during scanning.');

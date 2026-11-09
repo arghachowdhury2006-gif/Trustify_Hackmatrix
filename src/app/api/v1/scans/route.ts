@@ -38,11 +38,12 @@ export async function POST(req: NextRequest) {
     const hostname = ssrfCheck.hostname || new URL(normalizedUrl).hostname;
     const startTime = Date.now();
 
-    // Check Cache
-    const urlHash = crypto.createHash('sha256').update(normalizedUrl).digest('hex');
-    for (const cached of Array.from(db.scans.values())) {
-      if (cached.normalizedUrl === normalizedUrl) {
-        return NextResponse.json({ ...cached, fromCache: true });
+    // Optional cache check only if explicitly requested
+    if (body?.cached === true) {
+      for (const cached of Array.from(db.scans.values())) {
+        if (cached.normalizedUrl === normalizedUrl) {
+          return NextResponse.json({ ...cached, fromCache: true });
+        }
       }
     }
 

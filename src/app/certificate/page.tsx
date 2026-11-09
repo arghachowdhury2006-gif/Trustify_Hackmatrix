@@ -56,6 +56,7 @@ export default function CertificatePage() {
       setCertData(json.summary || json);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('trustify_alerts_updated'));
+        window.dispatchEvent(new Event('trustify_history_updated'));
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Error occurred while verifying certificate');
@@ -81,6 +82,7 @@ export default function CertificatePage() {
         setCertData(json.summary);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('trustify_alerts_updated'));
+          window.dispatchEvent(new Event('trustify_history_updated'));
         }
       }
     } catch {
@@ -107,6 +109,7 @@ export default function CertificatePage() {
         setCertData(json.summary);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('trustify_alerts_updated'));
+          window.dispatchEvent(new Event('trustify_history_updated'));
         }
       }
     } catch {
