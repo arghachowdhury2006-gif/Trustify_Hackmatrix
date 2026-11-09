@@ -89,6 +89,19 @@ export default function AlertsPage() {
     }
   };
 
+  const handleClearAlerts = async () => {
+    if (!confirm('Are you sure you want to clear all security alerts?')) return;
+    try {
+      await fetch('/api/v1/alerts', { method: 'DELETE' });
+      setAlerts([]);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('trustify_alerts_updated'));
+      }
+    } catch {
+      //
+    }
+  };
+
   const filteredAlerts = alerts.filter(a => {
     if (filter === 'unread') return !a.isRead;
     if (filter === 'high') return a.severity === 'high' || a.severity === 'critical';
@@ -113,13 +126,22 @@ export default function AlertsPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleMarkAllRead}
-          className="px-4 py-2.5 rounded-btn bg-[#FBEBDA] hover:bg-[#E8C9AA] text-ink font-semibold text-xs border border-[#E8C9AA] transition-all flex items-center gap-1.5 self-start sm:self-auto"
-        >
-          <Check size={14} />
-          <span>Mark All Read</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={handleMarkAllRead}
+            className="px-4 py-2.5 rounded-btn bg-[#FBEBDA] hover:bg-[#E8C9AA] text-ink font-semibold text-xs border border-[#E8C9AA] transition-all flex items-center gap-1.5"
+          >
+            <Check size={14} />
+            <span>Mark All Read</span>
+          </button>
+          <button
+            onClick={handleClearAlerts}
+            className="px-4 py-2.5 rounded-btn bg-[#DA6D58]/15 hover:bg-[#DA6D58]/30 text-[#DA6D58] font-semibold text-xs border border-[#DA6D58]/40 transition-all flex items-center gap-1.5"
+          >
+            <Trash2 size={14} />
+            <span>Clear</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs & Content */}

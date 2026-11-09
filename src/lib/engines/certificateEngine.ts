@@ -19,7 +19,16 @@ const SMALL_PRIMES = [
 ];
 
 // In-memory SPKI registry for duplicate public key / eMudhra cross-domain shared-key detection
+const MAX_SPKI_ENTRIES = 5000;
 const KNOWN_SPKI_REGISTRY = new Map<string, string[]>();
+
+function recordSpki(spkiSha256: string, host: string, existingShared: string[]) {
+  if (KNOWN_SPKI_REGISTRY.size >= MAX_SPKI_ENTRIES) {
+    const oldestKey = KNOWN_SPKI_REGISTRY.keys().next().value;
+    if (oldestKey) KNOWN_SPKI_REGISTRY.delete(oldestKey);
+  }
+  KNOWN_SPKI_REGISTRY.set(spkiSha256, [...existingShared, host]);
+}
 
 export async function inspectCertificate(
   host: string,
@@ -348,7 +357,7 @@ function parseCertData(
     });
     certRisk += 55;
   } else {
-    KNOWN_SPKI_REGISTRY.set(spkiSha256, [...existingShared, host]);
+    recordSpki(spkiSha256, host, existingShared);
   }
 
   // Trial division test

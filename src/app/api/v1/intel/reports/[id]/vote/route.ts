@@ -16,6 +16,14 @@ export async function POST(
 
     const body = await req.json().catch(() => ({}));
     const voteValue = Number(body?.value); // 1 or -1
+
+    if (voteValue !== 1 && voteValue !== -1) {
+      return NextResponse.json(
+        { error: { code: 'VALIDATION_ERROR', message: 'Vote value must be 1 (upvote) or -1 (downvote).' } },
+        { status: 422 }
+      );
+    }
+
     const userId = body?.userId || req.headers.get('x-user-id') || 'analyst-user-session';
 
     const voteKey = `${userId}:${report.id}`;

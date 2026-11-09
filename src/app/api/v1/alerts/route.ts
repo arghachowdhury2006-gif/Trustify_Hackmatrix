@@ -34,3 +34,8 @@ export async function POST(req: NextRequest) {
   });
   return NextResponse.json({ success: true, message: 'All alerts marked as read.' });
 }
+
+export async function DELETE() {
+  db.alerts.clear();
+  return NextResponse.json({ success: true, message: 'All alerts cleared.' });
+}

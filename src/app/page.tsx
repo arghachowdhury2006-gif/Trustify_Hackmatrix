@@ -51,36 +51,29 @@ export default function DashboardPage() {
       }
     }
     loadDashboard();
+
+    // Listen to real-time events from URL scans and certificate audits
+    window.addEventListener('trustify_history_updated', loadDashboard);
+    window.addEventListener('trustify_alerts_updated', loadDashboard);
+    return () => {
+      window.removeEventListener('trustify_history_updated', loadDashboard);
+      window.removeEventListener('trustify_alerts_updated', loadDashboard);
+    };
   }, []);
 
-  const donutData = data
+  const totalScans = data?.kpis.totalScans.value ?? 0;
+  const hasScans = totalScans > 0;
+
+  const donutData = hasScans && data
     ? [
         { name: 'Safe', value: data.overview.safePct, color: '#468D8B' },
         { name: 'Suspicious', value: data.overview.suspiciousPct, color: '#FEAF76' },
         { name: 'Malicious', value: data.overview.maliciousPct, color: '#DA6D58' },
       ]
-    : [
-        { name: 'Safe', value: 94, color: '#468D8B' },
-        { name: 'Suspicious', value: 4, color: '#FEAF76' },
-        { name: 'Malicious', value: 2, color: '#DA6D58' },
-      ];
+    : [{ name: 'No Scans Yet', value: 1, color: '#E8C9AA' }];
 
-  const trendData = data?.overview?.trend || [
-    { day: 'Mon', scoreAvg: 92, scans: 1420 },
-    { day: 'Tue', scoreAvg: 89, scans: 1680 },
-    { day: 'Wed', scoreAvg: 91, scans: 1530 },
-    { day: 'Thu', scoreAvg: 88, scans: 1820 },
-    { day: 'Fri', scoreAvg: 90, scans: 1940 },
-    { day: 'Sat', scoreAvg: 93, scans: 1120 },
-    { day: 'Sun', scoreAvg: 94, scans: 1250 },
-  ];
-
-  const threatTypes = data?.threatTypes || [
-    { type: 'phishing', label: 'Phishing & Impersonation', pct: 44, count: 298 },
-    { type: 'malware', label: 'Malware & Exploit Kits', pct: 26, count: 176 },
-    { type: 'fake_payment', label: 'Payment / Banking Scams', pct: 18, count: 122 },
-    { type: 'others', label: 'Certificate / Misconfig Anomalies', pct: 12, count: 82 },
-  ];
+  const trendData = data?.overview?.trend || [];
+  const threatTypes = data?.threatTypes || [];
 
   return (
     <div className="space-y-8">
@@ -151,11 +144,15 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-3xl font-extrabold text-ink tracking-tight">
-              {data?.kpis.totalScans.value.toLocaleString() ?? '12,548'}
+              {data ? data.kpis.totalScans.value.toLocaleString() : '0'}
             </span>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-[#468D8B] font-semibold">
               <TrendingUp size={14} />
-              <span>+{data?.kpis.totalScans.deltaPct ?? 14.2}% this week</span>
+              <span>
+                {data?.kpis.totalScans.deltaPct !== undefined && data.kpis.totalScans.deltaPct !== 0
+                  ? `${data.kpis.totalScans.deltaPct > 0 ? `+${data.kpis.totalScans.deltaPct}%` : `${data.kpis.totalScans.deltaPct}%`} this week`
+                  : 'Live database count'}
+              </span>
             </div>
           </div>
         </div>
@@ -170,10 +167,14 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-3xl font-extrabold text-[#468D8B] tracking-tight">
-              {data?.kpis.safe.value.toLocaleString() ?? '11,870'}
+              {data ? data.kpis.safe.value.toLocaleString() : '0'}
             </span>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-[#468D8B] font-semibold">
-              <span>94.6% verification rate</span>
+              <span>
+                {data && data.kpis.totalScans.value > 0
+                  ? `${((data.kpis.safe.value / data.kpis.totalScans.value) * 100).toFixed(1)}% verification rate`
+                  : '0% verification rate'}
+              </span>
             </div>
           </div>
         </div>
@@ -188,11 +189,15 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-3xl font-extrabold text-[#DA6D58] tracking-tight">
-              {data?.kpis.threats.value.toLocaleString() ?? '678'}
+              {data ? data.kpis.threats.value.toLocaleString() : '0'}
             </span>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-[#DA6D58] font-semibold">
               <AlertTriangle size={14} />
-              <span>5.4% flagged malicious</span>
+              <span>
+                {data && data.kpis.totalScans.value > 0
+                  ? `${((data.kpis.threats.value / data.kpis.totalScans.value) * 100).toFixed(1)}% flagged malicious`
+                  : '0% flagged malicious'}
+              </span>
             </div>
           </div>
         </div>
@@ -207,10 +212,14 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-3xl font-extrabold text-ink tracking-tight">
-              {data?.kpis.avgResponseMs.value ?? 1150} ms
+              {data ? data.kpis.avgResponseMs.value : 0} ms
             </span>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-[#468D8B] font-semibold">
-              <span>-16.4% response latency</span>
+              <span>
+                {data?.kpis.avgResponseMs.deltaPct !== undefined && data.kpis.avgResponseMs.deltaPct !== 0
+                  ? `${data.kpis.avgResponseMs.deltaPct > 0 ? `+${data.kpis.avgResponseMs.deltaPct}%` : `${data.kpis.avgResponseMs.deltaPct}%`} latency delta`
+                  : 'Real-time telemetry'}
+              </span>
             </div>
           </div>
         </div>
@@ -255,8 +264,12 @@ export default function DashboardPage() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-black text-ink">94%</span>
-                <span className="text-[10px] uppercase font-bold text-ink-60">Safe Ratio</span>
+                <span className="text-2xl font-black text-ink">
+                  {hasScans && data ? `${data.overview.safePct}%` : '0%'}
+                </span>
+                <span className="text-[10px] uppercase font-bold text-ink-60">
+                  {hasScans ? 'Safe Ratio' : 'No Data'}
+                </span>
               </div>
             </div>
 
@@ -267,21 +280,27 @@ export default function DashboardPage() {
                   <span className="w-3 h-3 rounded-full bg-[#468D8B]" />
                   <span className="font-medium text-ink">Safe Websites</span>
                 </div>
-                <span className="font-bold text-ink">94%</span>
+                <span className="font-bold text-ink">
+                  {hasScans && data ? data.overview.safePct : 0}%
+                </span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-[#FEAF76]" />
                   <span className="font-medium text-ink">Suspicious Anomaly</span>
                 </div>
-                <span className="font-bold text-ink">4%</span>
+                <span className="font-bold text-ink">
+                  {hasScans && data ? data.overview.suspiciousPct : 0}%
+                </span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-[#DA6D58]" />
                   <span className="font-medium text-ink">Malicious / Phishing</span>
                 </div>
-                <span className="font-bold text-ink">2%</span>
+                <span className="font-bold text-ink">
+                  {hasScans && data ? data.overview.maliciousPct : 0}%
+                </span>
               </div>
 
               <div className="pt-3 border-t border-[#E8C9AA] text-[11px] text-ink-60">
@@ -292,20 +311,42 @@ export default function DashboardPage() {
 
           {/* 7-Day Trend Line Chart */}
           <div className="mt-6 pt-6 border-t border-[#E8C9AA]">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-ink-60 mb-3">
-              Daily Average Trust Score
-            </h4>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-60">
+                Daily Average Trust Score (Past 7 Days)
+              </h4>
+              <span className="text-[11px] text-[#468D8B] font-semibold">
+                {trendData.reduce((acc, t) => acc + (t.scans || 0), 0)} scans logged
+              </span>
+            </div>
             <div className="h-36">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData}>
                   <XAxis dataKey="day" stroke="#4b6671" fontSize={11} tickLine={false} />
-                  <YAxis domain={[75, 100]} stroke="#4b6671" fontSize={11} tickLine={false} width={28} />
+                  <YAxis domain={[0, 100]} stroke="#4b6671" fontSize={11} tickLine={false} width={28} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#FBEBDA',
-                      borderColor: '#E8C9AA',
-                      borderRadius: 12,
-                      fontSize: 12,
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const p = payload[0].payload;
+                        return (
+                          <div className="bg-[#FBEBDA] border border-[#E8C9AA] rounded-xl p-2.5 shadow-sm text-xs">
+                            <div className="font-bold text-ink mb-1">
+                              {p.day} ({p.scans} {p.scans === 1 ? 'scan' : 'scans'})
+                            </div>
+                            <div className="text-[#468D8B] font-semibold">
+                              Avg Score: {p.scans > 0 ? `${p.scoreAvg} / 100` : 'No Scans'}
+                            </div>
+                            {p.scans > 0 && (
+                              <div className="text-[10px] text-ink-60 mt-1 flex gap-2">
+                                <span>Safe: {p.safe || 0}</span>
+                                <span>Suspicious: {p.suspicious || 0}</span>
+                                <span>Malicious: {p.malicious || 0}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
                   />
                   <Line

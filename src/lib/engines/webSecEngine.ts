@@ -1,4 +1,5 @@
 import { Reason, WebsecSummary } from '../types';
+import { validateUrlForSSRF } from './ssrfGuard';
 
 export interface WebSecAnalysisResult {
   websecRisk: number; // 0-100
@@ -26,27 +27,64 @@ export async function assessWebSecurity(
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-    const res = await fetch(targetUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Trustify-Security-Scanner/1.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      },
-      signal: controller.signal,
-      redirect: 'follow',
-    });
+    let currentUrl = targetUrl;
+    let maxRedirects = 5;
+
+    while (maxRedirects > 0) {
+      const res = await fetch(currentUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Trustify-Security-Scanner/1.0',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+        signal: controller.signal,
+        redirect: 'manual',
+      });
+
+      responseHeaders = res.headers;
+      status = res.status;
+
+      // Handle HTTP redirects securely
+      if ([301, 302, 303, 307, 308].includes(res.status)) {
+        const location = res.headers.get('location');
+        if (!location) {
+          finalUrl = currentUrl;
+          break;
+        }
+
+        const nextUrl = new URL(location, currentUrl).toString();
+        // Strict SSRF validation on the redirected location
+        const ssrfCheck = await validateUrlForSSRF(nextUrl);
+        if (!ssrfCheck.safe) {
+          reasons.push({
+            code: 'SSRF_REDIRECT_BLOCKED',
+            engine: 'websec',
+            severity: 'critical',
+            title: 'Blocked unsafe redirect target',
+            detail: `Website redirected to a prohibited internal or private network location: ${nextUrl}`,
+            weight: 50,
+          });
+          websecRisk += 50;
+          finalUrl = nextUrl;
+          redirectChain.push(nextUrl);
+          break;
+        }
+
+        currentUrl = nextUrl;
+        finalUrl = nextUrl;
+        redirectChain.push(nextUrl);
+        maxRedirects--;
+        continue;
+      }
+
+      // Read response body text safely (max 512KB for passive inspection)
+      finalUrl = currentUrl;
+      const text = await res.text();
+      htmlContent = text.slice(0, 524288);
+      break;
+    }
 
     clearTimeout(timer);
-    responseHeaders = res.headers;
-    finalUrl = res.url || targetUrl;
-    if (finalUrl !== targetUrl) {
-      redirectChain.push(finalUrl);
-    }
-    status = res.status;
-
-    // Read limited body text (max 512KB for passive inspection)
-    const text = await res.text();
-    htmlContent = text.slice(0, 524288);
   } catch {
     // If request fails (e.g. offline, refused, or badssl demo), provide realistic forensic headers
   }

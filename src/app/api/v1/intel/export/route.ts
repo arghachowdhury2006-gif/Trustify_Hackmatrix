@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/store';
 
+export const dynamic = 'force-dynamic';
+
+function escapeCsvCell(val: any): string {
+  if (val === null || val === undefined) return '""';
+  let str = String(val);
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const format = searchParams.get('format') || 'json';
@@ -9,7 +20,15 @@ export async function GET(req: NextRequest) {
   if (format === 'csv') {
     const headers = 'id,url,domain,category,status,upvotes,created_at\n';
     const rows = reports.map(r => 
-      `"${r.id}","${r.url}","${r.domain}","${r.category}","${r.status}",${r.upvotes},"${r.createdAt}"`
+      [
+        escapeCsvCell(r.id),
+        escapeCsvCell(r.url),
+        escapeCsvCell(r.domain),
+        escapeCsvCell(r.category),
+        escapeCsvCell(r.status),
+        typeof r.upvotes === 'number' ? r.upvotes : escapeCsvCell(r.upvotes),
+        escapeCsvCell(r.createdAt),
+      ].join(',')
     ).join('\n');
 
     return new Response(headers + rows, {

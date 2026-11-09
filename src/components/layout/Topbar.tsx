@@ -30,7 +30,7 @@ function getInitials(name: string): string {
 
 export const Topbar: React.FC<TopbarProps> = ({
   onToggleSidebar,
-  unreadCount = 2,
+  unreadCount = 0,
 }) => {
   const router = useRouter();
 

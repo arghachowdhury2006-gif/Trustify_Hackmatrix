@@ -40,8 +40,23 @@ function isPrivateIp(ip: string): boolean {
   if (lower === '::1' || lower === '0:0:0:0:0:0:0:1') return true;
   if (lower.startsWith('fe80:') || lower.startsWith('fc00:') || lower.startsWith('fd00:')) return true;
   if (lower.startsWith('::ffff:')) {
-    const embeddedIpv4 = lower.substring(7);
-    return isPrivateIp(embeddedIpv4);
+    const embedded = lower.substring(7);
+    if (embedded.includes('.')) {
+      return isPrivateIp(embedded);
+    }
+    const hexParts = embedded.split(':');
+    if (hexParts.length === 2) {
+      const h1 = parseInt(hexParts[0], 16);
+      const h2 = parseInt(hexParts[1], 16);
+      if (!isNaN(h1) && !isNaN(h2)) {
+        const o1 = (h1 >> 8) & 255;
+        const o2 = h1 & 255;
+        const o3 = (h2 >> 8) & 255;
+        const o4 = h2 & 255;
+        return isPrivateIp(`${o1}.${o2}.${o3}.${o4}`);
+      }
+    }
+    return true; // Unknown/malformed IPv4-mapped IPv6, reject to be safe
   }
 
   return false;

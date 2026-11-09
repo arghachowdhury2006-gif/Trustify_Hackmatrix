@@ -28,6 +28,9 @@ test('SSRF Guard: blocks dangerous private and metadata targets', async () => {
 
   const encodedIp = await validateUrlForSSRF('http://2130706433/'); // 127.0.0.1 in integer
   assert.equal(encodedIp.safe, false, 'Should block integer encoded private IP');
+
+  const ipv4MappedHex = await validateUrlForSSRF('http://[::ffff:7f00:0001]/'); // 127.0.0.1 in hex mapped IPv6
+  assert.equal(ipv4MappedHex.safe, false, 'Should block IPv4-mapped IPv6 hex loopback');
 });
 
 test('SSRF Guard: allows legitimate public domain', async () => {

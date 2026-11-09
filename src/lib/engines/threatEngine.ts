@@ -134,9 +134,22 @@ export function analyzeThreatFeatures(
   // 1. Lexical features
   const urlLength = url.length;
   const parts = host.split('.');
-  const tld = parts[parts.length - 1] || '';
-  const sld = parts.length >= 2 ? parts[parts.length - 2] : host;
-  const subdomainDepth = Math.max(0, parts.length - 2);
+  const COMMON_MULTI_TLDS = new Set(['co.uk', 'co.in', 'com.au', 'net.au', 'org.uk', 'gov.in', 'co.nz', 'co.za', 'com.br', 'co.jp']);
+  const lastTwo = parts.slice(-2).join('.');
+  let tld: string;
+  let sld: string;
+  let subdomainDepth: number;
+
+  if (COMMON_MULTI_TLDS.has(lastTwo) && parts.length >= 3) {
+    tld = lastTwo;
+    sld = parts[parts.length - 3];
+    subdomainDepth = Math.max(0, parts.length - 3);
+  } else {
+    tld = parts[parts.length - 1] || '';
+    sld = parts.length >= 2 ? parts[parts.length - 2] : host;
+    subdomainDepth = Math.max(0, parts.length - 2);
+  }
+
   const entropy = calculateEntropy(host);
   const hasAtSymbol = url.includes('@');
   const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
@@ -316,9 +329,10 @@ export function analyzeThreatFeatures(
   let hasObfuscatedJs = false;
   if (htmlContent) {
     const lowerHtml = htmlContent.toLowerCase();
+    const boundedHtml = lowerHtml.slice(0, 65536);
     // Check for off-domain form actions with password fields
-    if (lowerHtml.includes('type="password"') || lowerHtml.includes("type='password'")) {
-      const formActionMatch = lowerHtml.match(/action=["'](https?:\/\/[^"']+)["']/);
+    if (boundedHtml.includes('type="password"') || boundedHtml.includes("type='password'")) {
+      const formActionMatch = boundedHtml.match(/action=["'](https?:\/\/[^"'\s>]+)["']/i);
       if (formActionMatch) {
         try {
           const actionHost = new URL(formActionMatch[1]).hostname.toLowerCase();

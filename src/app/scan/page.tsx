@@ -122,10 +122,6 @@ function ScanContent() {
         body: JSON.stringify({ url: rawTarget }),
       });
 
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-
       const data = await res.json();
 
       if (!res.ok) {
@@ -142,6 +138,9 @@ function ScanContent() {
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred during scanning.');
     } finally {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
       setLoading(false);
     }
   };

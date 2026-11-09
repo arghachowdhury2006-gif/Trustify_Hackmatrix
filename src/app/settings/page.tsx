@@ -25,24 +25,7 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState(false);
 
   // Watchlist state
-  const [watchlist, setWatchlist] = useState<WatchlistDomain[]>([
-    {
-      id: 'watch-01',
-      domain: 'trustify-portal.io',
-      addedAt: '2026-10-24T00:00:00Z',
-      status: 'healthy',
-      expiresInDays: 85,
-      certIssuer: "Let's Encrypt Authority R3",
-    },
-    {
-      id: 'watch-02',
-      domain: 'api.trustify-demo.org',
-      addedAt: '2026-10-18T00:00:00Z',
-      status: 'warning',
-      expiresInDays: 11,
-      certIssuer: 'DigiCert Global Root G2',
-    },
-  ]);
+  const [watchlist, setWatchlist] = useState<WatchlistDomain[]>([]);
   const [newDomain, setNewDomain] = useState('');
 
   // Notifications state
@@ -67,8 +50,21 @@ export default function SettingsPage() {
     }
   };
 
+  const fetchWatchlist = async () => {
+    try {
+      const res = await fetch('/api/v1/watchlist');
+      if (res.ok) {
+        const data = await res.json();
+        setWatchlist(data.items || []);
+      }
+    } catch {
+      //
+    }
+  };
+
   useEffect(() => {
     fetchKeys();
+    fetchWatchlist();
 
     if (typeof window !== 'undefined') {
       try {
@@ -142,19 +138,32 @@ export default function SettingsPage() {
     }
   };
 
-  const handleAddWatchlist = (e: React.FormEvent) => {
+  const handleAddWatchlist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDomain.trim()) return;
-    const item: WatchlistDomain = {
-      id: 'watch-' + Date.now(),
-      domain: newDomain.trim().toLowerCase(),
-      addedAt: new Date().toISOString(),
-      status: 'healthy',
-      expiresInDays: 90,
-      certIssuer: 'DigiCert Global CA',
-    };
-    setWatchlist([item, ...watchlist]);
-    setNewDomain('');
+    try {
+      const res = await fetch('/api/v1/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: newDomain.trim() }),
+      });
+      if (res.ok) {
+        const item = await res.json();
+        setWatchlist(prev => [item, ...prev.filter(w => w.id !== item.id)]);
+        setNewDomain('');
+      }
+    } catch {
+      //
+    }
+  };
+
+  const handleRemoveWatchlist = async (id: string) => {
+    try {
+      await fetch(`/api/v1/watchlist?id=${id}`, { method: 'DELETE' });
+      setWatchlist(prev => prev.filter(w => w.id !== id));
+    } catch {
+      //
+    }
   };
 
   const handleCopyKey = (text: string) => {
@@ -371,7 +380,7 @@ export default function SettingsPage() {
                       {item.expiresInDays} days left
                     </span>
                     <button
-                      onClick={() => setWatchlist(watchlist.filter(w => w.id !== item.id))}
+                      onClick={() => handleRemoveWatchlist(item.id)}
                       className="text-[#DA6D58] hover:underline text-xs"
                     >
                       Remove

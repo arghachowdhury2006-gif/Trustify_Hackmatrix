@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/store';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }

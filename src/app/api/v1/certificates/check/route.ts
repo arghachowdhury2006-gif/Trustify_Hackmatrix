@@ -9,7 +9,23 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     let host = body?.host || body?.domain || '';
-    const port = Number(body?.port) || 443;
+    const rawPort = body?.port !== undefined ? Number(body.port) : 443;
+
+    if (isNaN(rawPort) || !Number.isInteger(rawPort) || rawPort < 1 || rawPort > 65535) {
+      return NextResponse.json(
+        { error: { code: 'INVALID_PORT', message: 'Port must be a valid integer between 1 and 65535.' } },
+        { status: 422 }
+      );
+    }
+
+    const ALLOWED_TLS_PORTS = new Set([443, 8443, 465, 993, 995, 8080, 8444]);
+    if (!ALLOWED_TLS_PORTS.has(rawPort)) {
+      return NextResponse.json(
+        { error: { code: 'FORBIDDEN_PORT', message: 'Certificate inspection is restricted to standard TLS ports (443, 8443, 465, 993, 995, 8080).' } },
+        { status: 400 }
+      );
+    }
+    const port = rawPort;
 
     if (!host) {
       return NextResponse.json(
