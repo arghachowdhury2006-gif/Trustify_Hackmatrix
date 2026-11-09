@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="assets/trustify-logo.png" alt="Trustify Logo" width="140" />
+  <img src="assets/trustify-logo.jpeg"
+       alt="Trustify Logo" width="140" />
 </p>
 
 <h1 align="center">🛡️ Trustify — AI-Powered Web Threat Detection & Digital Trust Intelligence</h1>
@@ -27,7 +28,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/trustify-dashboard.png" alt="Trustify – AI-Powered Digital Trust Intelligence Dashboard" width="100%" />
+  <img src="assets/trustify-dashboard.jpeg" alt="Trustify – AI-Powered Digital Trust Intelligence Dashboard" width="100%" />
   <br />
   <em>Trustify – AI-Powered Digital Trust Intelligence Dashboard</em>
 </p>
